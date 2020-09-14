@@ -12,7 +12,7 @@ def stderrInRed(cmd) {
 def build(platform) {
 	checkout scm
             
-	prefix = 'openssl'
+	def prefix = 'openssl'
     stderrInRed('mkdir ' + prefix)
             
 	if (platform == "x86_64") {
@@ -23,7 +23,7 @@ def build(platform) {
 
     stderrInRed('make -j$(nproc)')
     stderrInRed('make install')
-    tarballProfiled = 'openssl-' + platform + '-profiled.tbz'
+    def tarballProfiled = 'openssl-' + platform + '-profiled.tbz'
 	stderrInRed('tar jcf ' + tarballProfiled + ' ' + prefix)
 	
 	sh 'rm -rf ' + prefix
@@ -36,7 +36,7 @@ def build(platform) {
 
     stderrInRed('make -j$(nproc)')
     stderrInRed('make install')
-    tarball = 'openssl-' + platform + '.tbz'
+    def tarball = 'openssl-' + platform + '.tbz'
 	stderrInRed('tar jcf ' + tarball + ' ' + prefix)
 
     archiveArtifacts fingerprint: true, artifacts: tarball
@@ -50,8 +50,8 @@ def build(platform) {
     } catch (ex) {
 		unstable('tests failed');
     }
-        
-    recordIssues enabledForFailure: true, aggregatingResults: true, tools: [gcc()]
+
+    recordIssues enabledForFailure: true, aggregatingResults: true, tools: [gcc(id: "${platform}_gcc")]
 }
 
 def buildInDocker(platform) {
@@ -63,7 +63,7 @@ def buildInDocker(platform) {
 
             sh 'git clone --depth 1 https://github.com/deece/openssl-jenkins.git'
 
-            dockerContainer = 'openssl'
+            def dockerContainer = 'openssl'
             expandEnvAndAppend('openssl-jenkins/Dockerfile.build', 'Dockerfile')
             docker.build dockerContainer
 
@@ -97,7 +97,7 @@ algs = [
 funcs = ['ecdsa', 'ecdh' ]
 
 def benchmark(platform) {
-	tarballProfiled = 'openssl-' + platform + '-profiled.tbz'
+	def tarballProfiled = 'openssl-' + platform + '-profiled.tbz'
 	unstash tarballProfiled
 	stderrInRed('tar jxf ' + tarballProfiled)
         
@@ -105,11 +105,11 @@ def benchmark(platform) {
  		for (func in funcs) {
  			for (alg in algs) {
  				alg = alg.replace('nist', '');
-				combo = func + alg
+				def combo = func + alg
 
     	    	sh 'LD_LIBRARY_PATH=lib bin/openssl speed \'' + combo + '\' | tee -a results.txt'
 	
-				profile = 'openssl-' + platform + '-' + combo + '.gprof'
+				def profile = 'openssl-' + platform + '-' + combo + '.gprof'
 				sh 'gprof bin/openssl > ' + profile
 				archiveArtifacts fingerprint: true, artifacts: profile
 			}
@@ -126,7 +126,7 @@ def benchmark(platform) {
 def benchmarkInDocker(platform) {
 	try {
 	    sh 'git clone --depth 1 https://github.com/deece/openssl-jenkins.git'
-		dockerContainer = 'openssl'
+		def dockerContainer = 'openssl'
 		expandEnvAndAppend('openssl-jenkins/Dockerfile.build', 'Dockerfile')
 		docker.build dockerContainer
 
@@ -139,7 +139,7 @@ def benchmarkInDocker(platform) {
 }
 
 def callgrind(platform) {
-   	tarball = 'openssl-' + platform + '.tbz'
+   	def tarball = 'openssl-' + platform + '.tbz'
 	unstash tarball
 	stderrInRed('tar jxf ' + tarball)
         
@@ -147,10 +147,10 @@ def callgrind(platform) {
 		for (func in funcs) {
 			for (alg in algs) {
 				alg = alg.replace('nist', '');
-				combo = func + alg
+				def combo = func + alg
 
     	    	sh 'LD_LIBRARY_PATH=lib valgrind --tool=callgrind --cache-sim=yes bin/openssl speed \'' + combo + '\''
-    			cg = 'callgrind-' + platform + '-' + combo
+    			def cg = 'callgrind-' + platform + '-' + combo
 				sh 'mv callgrind.out.* ' + cg
 				sh 'callgrind_annotate ' + cg
 				
@@ -163,7 +163,7 @@ def callgrind(platform) {
 def callgrindInDocker(platform) {
 	try {
 	    sh 'git clone --depth 1 https://github.com/deece/openssl-jenkins.git'
-		dockerContainer = 'openssl'
+		def dockerContainer = 'openssl'
 		expandEnvAndAppend('openssl-jenkins/Dockerfile.build', 'Dockerfile')
 		docker.build dockerContainer
 
