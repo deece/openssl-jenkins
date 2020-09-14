@@ -17,6 +17,8 @@ def build(platform) {
             
 	if (platform == "x86_64") {
 		sh "./Configure --prefix=`pwd`/" + prefix + ' -Wall -Wextra -pg linux-x86_64'            	                    
+    }  else if (platform == "ppc64le") {
+		sh "./Configure --prefix=`pwd`/" + prefix + ' -Wall -Wextra -pg linux-ppc64le'
     }
 
     stderrInRed('make -j$(nproc)')
