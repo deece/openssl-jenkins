@@ -25,6 +25,7 @@ def build(platform) {
     stderrInRed('make install')
     def tarballProfiled = 'openssl-' + platform + '-profiled.tbz'
 	stderrInRed('tar jcf ' + tarballProfiled + ' ' + prefix)
+    stderrInRed('make clean')
 	
 	sh 'rm -rf ' + prefix
 	
